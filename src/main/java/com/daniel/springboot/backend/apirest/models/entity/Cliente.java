@@ -17,6 +17,10 @@ public class Cliente implements Serializable {
     private String email;
     @Column(name = "create_at") @Temporal(TemporalType.DATE)
     private Date createAt;
+    @PrePersist
+    private void prePersist(){
+        createAt = new Date();
+    }
 
     private static final long serialVersionUID = 1L;
 
