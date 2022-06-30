@@ -3,3 +3,4 @@ INSERT INTO clientes (nombre, apellido, email, create_at) VALUES('Cristiano', 'R
 INSERT INTO clientes (nombre, apellido, email, create_at) VALUES('Lionel', 'Messi', 'liomessi@gmail.com', '2018-01-03');
 INSERT INTO clientes (nombre, apellido, email, create_at) VALUES('Neymar', 'Jr', 'ney@gmail.com', '2018-02-05');
 INSERT INTO clientes (nombre, apellido, email, create_at) VALUES('Robert', 'Lewandosky', 'robert@gmail.com', '2018-04-04');
+INSERT INTO clientes (nombre, apellido, email, create_at) VALUES('Luis', 'Diaz', 'lucho@gmail.com', '2019-02-03');
