@@ -2,16 +2,22 @@ package com.daniel.springboot.backend.apirest.controllers;
 
 import com.daniel.springboot.backend.apirest.models.entity.Cliente;
 import com.daniel.springboot.backend.apirest.models.services.IClienteService;
+import com.daniel.springboot.backend.apirest.models.services.IUploadFileService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +29,9 @@ public class ClienteResController {
 
     @Autowired
     private IClienteService clienteService;
+
+    @Autowired
+    private IUploadFileService uploadFileService;
 
     @GetMapping("/clientes")
     public List<Cliente> index(){
@@ -36,7 +45,7 @@ public class ClienteResController {
 
     @GetMapping("/clientes/{id}")
     public ResponseEntity<?> show(@PathVariable Long id){
-        Cliente cliente = null;
+        Cliente cliente;
         Map<String, Object> response = new HashMap<>();
 
         try{
@@ -55,7 +64,7 @@ public class ClienteResController {
 
     @PostMapping("/clientes")
     public ResponseEntity<?> create(@Valid @RequestBody Cliente cliente, BindingResult result){
-        Cliente cliente1 = null;
+        Cliente cliente1;
         Map<String, Object> response = new HashMap<>();
         if (result.hasErrors()){
 //            List<String> errors = new ArrayList<>();
@@ -82,7 +91,7 @@ public class ClienteResController {
     @PutMapping("/clientes/{id}")
     public ResponseEntity<?> update(@Valid @RequestBody Cliente cliente, BindingResult result, @PathVariable Long id){
         Cliente cliente1 = clienteService.findById(id);
-        Cliente clienteActualizado = null;
+        Cliente clienteActualizado;
         Map<String, Object> response = new HashMap<>();
         if (result.hasErrors()){
             List<String> errors = result.getFieldErrors().stream()
@@ -99,6 +108,7 @@ public class ClienteResController {
             cliente1.setNombre(cliente.getNombre());
             cliente1.setApellido(cliente.getApellido());
             cliente1.setEmail(cliente.getEmail());
+            cliente1.setCreateAt(cliente.getCreateAt());
             clienteActualizado = clienteService.save(cliente1);
         }catch (DataAccessException e){
             response.put("Mensaje", "Error al actualizar el cliente en la base de datos");
@@ -114,6 +124,9 @@ public class ClienteResController {
     public ResponseEntity<?> delete(@PathVariable Long id){
         Map<String, Object> response = new HashMap<>();
         try{
+            Cliente cliente = clienteService.findById(id);
+            String nombreFotoAnterior = cliente.getFoto();
+            uploadFileService.eliminar(nombreFotoAnterior);
             clienteService.delete(id);
         }catch (DataAccessException e){
             response.put("Mensaje", "Error al eliminar el cliente en la base de datos");
@@ -122,5 +135,44 @@ public class ClienteResController {
         }
         response.put("Mensaje", "El cliente ha sido eliminado con exito");
         return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @PostMapping("/clientes/upload")
+    public ResponseEntity<?> upload(@RequestParam("archivo")MultipartFile archivo, @RequestParam("id") Long id){
+        Map<String, Object> response = new HashMap<>();
+        Cliente cliente = clienteService.findById(id);
+        if (!archivo.isEmpty()){
+            String nombreArchivo;
+            try {
+                nombreArchivo = uploadFileService.copiar(archivo);
+            } catch (IOException e) {
+                response.put("Mensaje", "Error al subir la imagen ");
+                response.put("Error", e.getMessage().concat(": ").concat(e.getCause().getMessage()));
+                return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+            String nombreFotoAnterior = cliente.getFoto();
+
+            uploadFileService.eliminar(nombreFotoAnterior);
+
+            cliente.setFoto(nombreArchivo);
+            clienteService.save(cliente);
+            response.put("cliente", cliente);
+            response.put("mensaje", "Has subido correctamente la imagen: " + nombreArchivo);
+        }
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+//    :.+ significa q va contener una extension
+    @GetMapping("/uploads/img/{nombreFoto:.+}")
+    public ResponseEntity<?> verFoto(@PathVariable String nombreFoto){
+        Resource recurso = null;
+        try {
+            recurso = uploadFileService.cargar(nombreFoto);
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+//        se usa para forzar la descarga
+        HttpHeaders cabecera = new HttpHeaders();
+        cabecera.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + recurso.getFilename() + "\"");
+        return new ResponseEntity<>(recurso, cabecera, HttpStatus.OK);
     }
 }

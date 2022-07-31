@@ -4,10 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
-import javax.validation.constraints.Email;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.*;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -24,12 +21,14 @@ public class Cliente implements Serializable {
     @NotEmpty(message = "No puede estar vacio") @Email(message = "No es un correo valido")
     @Column(nullable = false, unique = false)
     private String email;
+    @NotNull(message = "No puede estar vacio")
     @Column(name = "create_at") @Temporal(TemporalType.DATE)
     private Date createAt;
-    @PrePersist
-    private void prePersist(){
-        createAt = new Date();
-    }
+    private String foto;
+//    @PrePersist
+//    private void prePersist(){
+//        createAt = new Date();
+//    }
 
     private static final long serialVersionUID = 1L;
 
