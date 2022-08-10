@@ -1,5 +1,6 @@
 package com.daniel.springboot.backend.apirest.models.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -19,12 +20,17 @@ public class Cliente implements Serializable {
     @NotEmpty(message = "No puede estar vacio")
     private String apellido;
     @NotEmpty(message = "No puede estar vacio") @Email(message = "No es un correo valido")
-    @Column(nullable = false, unique = false)
+    @Column(unique = true) //nullable
     private String email;
     @NotNull(message = "No puede estar vacio")
     @Column(name = "create_at") @Temporal(TemporalType.DATE)
     private Date createAt;
     private String foto;
+    @NotNull(message = "la region no puede estar vacia")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "region_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    private Region region;
 //    @PrePersist
 //    private void prePersist(){
 //        createAt = new Date();
