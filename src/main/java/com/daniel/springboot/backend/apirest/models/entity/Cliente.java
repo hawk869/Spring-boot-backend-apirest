@@ -7,13 +7,15 @@ import lombok.Setter;
 import javax.persistence.*;
 import javax.validation.constraints.*;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Getter @Setter @Entity @Table(name = "clientes")
 public class Cliente implements Serializable {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
     @NotEmpty(message = "No puede estar vacio") @Size(min = 4, max = 20, message = "Debe tener minimo 4 caracteres")
     @Column(nullable = false)
     private String nombre;
@@ -31,10 +33,14 @@ public class Cliente implements Serializable {
     @JoinColumn(name = "region_id")
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Region region;
-//    @PrePersist
-//    private void prePersist(){
-//        createAt = new Date();
-//    }
+    @JsonIgnoreProperties({"cliente", "hibernateLazyInitializer", "handler"}) //para evitar un loop
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "cliente", cascade = CascadeType.ALL)
+    private List<Factura> facturas;
+
+    public Cliente(){
+        this.facturas = new ArrayList<>();
+    }
+
 
     private static final long serialVersionUID = 1L;
 
