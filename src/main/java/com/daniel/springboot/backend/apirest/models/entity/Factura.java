@@ -20,7 +20,7 @@ public class Factura implements Serializable {
     private String observacion;
     @Column(name = "create_at") @Temporal(TemporalType.DATE)
     private Date createAt;
-    @JsonIgnoreProperties({"facturas", "hibernateLazyInitializer", "handler"}) //ignorar la relacion de la contraparte y evitar loop
+    @JsonIgnoreProperties(value = {"facturas", "hibernateLazyInitializer", "handler"}, allowSetters = true) //ignorar la relacion de la contraparte y evitar loop
     @ManyToOne(fetch = FetchType.LAZY)
     private Cliente cliente;
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
